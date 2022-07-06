@@ -1,19 +1,25 @@
 local _, addonTable = ...
 
+CUA_frames = {...}
+CUA_books = {...}
+CUA_entries = {...}
+CUA_utils = {...}
+CUA_quests = {...}
+
 -- [ utils ]
 
-local print_table = function (table, title)
+local function print_table(table, title)
     print(title .. " {")
     for k, v in pairs(table) do print("[" .. k .. "]=" .. tostring(v)) end
     print("} " .. title)
 end
 
-local copy_table = function (target, source)
+local function copy_table(target, source)
     for k, v in pairs(source) do target[k] = v end
     return target
 end
 
-local capitalize = function (text)
+local function capitalize(text)
     local b1 = strbyte(text, 1)
     if b1 >= 208 and b1 <= 210 then -- this is utf8 character, 2 bytes long
         local b2 = strbyte(text, 2)
@@ -50,7 +56,7 @@ end
 
 -- [ entries ]
 
-local get_stats = function ()
+local function get_stats()
     local stats = {}
     for _, v in ipairs({ "quest_a", "quest_h", "quest_n", "book", "item", "spell", "npc", "object", "zone" }) do
         stats[v] = 0
@@ -59,12 +65,7 @@ local get_stats = function ()
     return stats
 end
 
-local prepare_talent_tree = function (class)
-    -- keep only player class tree
-    addonTable.talent_tree = addonTable.talent_tree[class]
-end
-
-local prepare_zones = function ()
+local function prepare_zones()
     local z = addonTable.zone
 
     -- known aliases
@@ -146,14 +147,14 @@ local prepare_zones = function ()
     end
 end
 
-local prepare_quests = function (is_alliance)
+local function prepare_quests(is_alliance)
     -- init faction quests reference
     addonTable.quest_f = is_alliance and addonTable.quest_a or addonTable.quest_h
     -- drop opposite faction quests
     addonTable[ is_alliance and "quest_h" or "quest_a" ] = nil
 end
 
-local prepare_codes = function (name, race, class, is_male)
+local function prepare_codes(name, race, class, is_male)
     -- print("preparing codes for: " .. name .. " / " .. race .. " / " .. class .. " / " .. (is_male and "male" or "famale"))
     local at = addonTable
     local sex = is_male and 1 or 2
@@ -197,15 +198,15 @@ local prepare_codes = function (name, race, class, is_male)
 
     -- only "стать" is needed, but we make possible to use any letter casing
     -- (even if it has nothing to do with the letter case of the result, as text gets shown as is)
-    codes["{стать:(.-):(.-)}"] = function (a, b) return is_male and a or b end
-    codes["{Стать:(.-):(.-)}"] = function (a, b) return is_male and a or b end
-    codes["{СТАТЬ:(.-):(.-)}"] = function (a, b) return is_male and a or b end
+    codes["{стать:(.-):(.-)}"](a, b) return is_male and a or b end
+    codes["{Стать:(.-):(.-)}"](a, b) return is_male and a or b end
+    codes["{СТАТЬ:(.-):(.-)}"](a, b) return is_male and a or b end
 
     -- print_table(codes, "codes")
     at.codes = codes
 end
 
-local make_text = function (text)
+local function make_text(text)
     if not text then
         return nil
     end
@@ -217,7 +218,8 @@ local make_text = function (text)
     return text
 end
 
-local make_text_array = function (array)
+--rem
+local function make_text_array(array)
     if array then
         local result = {}
         for i = 1, #array do
@@ -229,7 +231,8 @@ local make_text_array = function (array)
     end
 end
 
-local get_entry = function (entry_type, entry_id)
+--rem
+local function get_entry(entry_type, entry_id)
     local at = addonTable
 
     if entry_type and entry_id then
@@ -277,7 +280,7 @@ local get_entry = function (entry_type, entry_id)
 end
 
 -- todo: add another loop to try different "'s", e.g. "XXX's" and "XXXs'" are considered to be equal
-local get_entry_text = function (entry_key)
+local function get_entry_text(entry_key)
     local at = addonTable
 
     if entry_key then
@@ -312,7 +315,7 @@ local get_entry_text = function (entry_key)
     return false
 end
 
-local make_entry_text = function (text, tooltip, tooltip_matches_to_skip)
+local function make_entry_text(text, tooltip, tooltip_matches_to_skip)
     if not text then
         return nil
     end
@@ -347,7 +350,7 @@ local make_entry_text = function (text, tooltip, tooltip_matches_to_skip)
     return text[1]:gsub("{(%d+)}", function (a) return values[tonumber(a)] end)
 end
 
-local get_text = function (entry_key)
+local function get_text(entry_key)
     local at = addonTable
 
     if entry_key and at.text[entry_key] then
@@ -363,7 +366,7 @@ local tooltip_entry_type = false
 local tooltip_entry_id = false
 
 -- content_index: default is 2 (description)
-local add_entry_to_tooltip = function (tooltip, entry_type, entry_id, content_index)
+local function add_entry_to_tooltip(tooltip, entry_type, entry_id, content_index)
     if tooltip_entry_type then
         return
     end
@@ -392,7 +395,8 @@ local add_entry_to_tooltip = function (tooltip, entry_type, entry_id, content_in
     tooltip_entry_id = entry_id
 end
 
-local add_talent_entry_to_tooltip = function (tooltip, tab_index, talent_index, rank, max_rank)
+--rem
+local function add_talent_entry_to_tooltip(tooltip, tab_index, talent_index, rank, max_rank)
     local talent = addonTable.talent_tree[tab_index] and addonTable.talent_tree[tab_index][talent_index] or false
     if not talent then -- this can never be true (as we have full Classic talent tree)
         return
@@ -438,7 +442,7 @@ local add_talent_entry_to_tooltip = function (tooltip, tab_index, talent_index, 
     tooltip_entry_id = talent[rank_to_show]
 end
 
-local tooltip_set_item = function (self)
+local function tooltip_set_item(self)
     local _, link = self:GetItem()
     if link then
         local _, _, id = link:find("Hitem:(%d+):")
@@ -448,14 +452,14 @@ local tooltip_set_item = function (self)
     end
 end
 
-local tooltip_set_spell = function (self)
+local function tooltip_set_spell(self)
     local _, id = self:GetSpell()
     if id then
         add_entry_to_tooltip(self, "spell", id)
     end
 end
 
-local tooltip_set_unit = function (self)
+local function tooltip_set_unit(self)
     local _, unit = self:GetUnit()
     if unit then
         local guid = UnitGUID(unit)
@@ -466,7 +470,7 @@ local tooltip_set_unit = function (self)
     end
 end
 
-local tooltip_cleared = function (self)
+local function tooltip_cleared(self)
     tooltip_entry_type = false
     tooltip_entry_id = false
 end
@@ -478,6 +482,7 @@ for _, tt in pairs { GameTooltip, ItemRefTooltip } do
     tt:HookScript("OnTooltipCleared", tooltip_cleared)
 end
 
+--rem
 hooksecurefunc(GameTooltip, "SetTalent", function (self, tab_index, talent_index)
     local rank, max_rank, is_active = select(5, GetTalentInfo(tab_index, talent_index))
     if not is_active then -- skip active talent (they get shown as spell)
@@ -530,7 +535,7 @@ end)
 
 -- [ frames ]
 
-local setup_frame_background_and_border = function (frame)
+local function setup_frame_background_and_border(frame)
     local texture = frame:CreateTexture(nil, "BACKGROUND")
     texture:SetTexture("Interface\\QuestFrame\\QuestBG")
     texture:SetTexCoord(0.0, 0.58, 0.0, 0.65)
@@ -544,7 +549,7 @@ local setup_frame_background_and_border = function (frame)
 end
 
 -- areas: { area1 = { font, size }, ... }
-local setup_frame_scrollbar_and_content = function (frame, areas)
+local function setup_frame_scrollbar_and_content(frame, areas)
     local scrollframe = CreateFrame("ScrollFrame", nil, frame)
     scrollframe:SetPoint("TOPLEFT", 8, -9)
     scrollframe:SetPoint("BOTTOMRIGHT", -8, 9)
@@ -587,7 +592,7 @@ local setup_frame_scrollbar_and_content = function (frame, areas)
     end)
 end
 
-local setup_frame_scrollbar_values = function (frame, height)
+local function setup_frame_scrollbar_values(frame, height)
     local delta = height - frame:GetHeight() + 24
     if delta > 0 then
         frame.scrollbar:SetMinMaxValues(1, delta)
@@ -605,7 +610,7 @@ local quest_title_font = "Interface\\AddOns\\ClassicUA\\assets\\Morpheus_UA.ttf"
 local quest_text_font = "Interface\\AddOns\\ClassicUA\\assets\\FRIZQT_UA.ttf"
 
 local quest_frame = nil
-local get_quest_frame = function ()
+local function get_quest_frame()
     if quest_frame then
         return quest_frame
     end
@@ -633,7 +638,7 @@ local get_quest_frame = function ()
 end
 
 -- frame must have properties: title, text, more_title, more_text
-local set_quest_content = function (frame, title, text, more_title, more_text)
+local function set_quest_content(frame, title, text, more_title, more_text)
     local h = 16
 
     frame.title:SetPoint("TOPLEFT", frame.content, 12, -h)
@@ -713,7 +718,7 @@ QuestFrameRewardPanel:HookScript("OnHide", function (event)
 end)
 
 local questlog_frame = nil
-local get_questlog_frame = function ()
+local function get_questlog_frame()
     if questlog_frame then
         return questlog_frame
     end
@@ -767,7 +772,7 @@ local book_item_id = false
 local book_text_font = "Interface\\AddOns\\ClassicUA\\assets\\Morpheus_UA.ttf"
 
 local book_frame = nil
-local get_book_frame = function ()
+local function get_book_frame()
     if book_frame then
         return book_frame
     end
@@ -791,7 +796,7 @@ local get_book_frame = function ()
     return book_frame
 end
 
-local set_book_content = function (text)
+local function set_book_content(text)
     local f = get_book_frame()
     local h = 16
 
@@ -802,7 +807,7 @@ local set_book_content = function (text)
     setup_frame_scrollbar_values(f, h)
 end
 
-local show_book = function (text)
+local function show_book(text)
     local book = get_entry("book", book_item_id)
     if book then
         local page = ItemTextGetPage()
@@ -814,7 +819,7 @@ local show_book = function (text)
     end
 end
 
-local hide_book = function ()
+local function hide_book()
     get_book_frame():Hide()
     book_item_id = false
 end
@@ -830,7 +835,7 @@ local zone_text_lookup = {
     { PVPArenaTextString, get_text },
 }
 
-local update_zone_text = function ()
+local function update_zone_text()
     local text, found
     for _, lookup in ipairs(zone_text_lookup) do
         text = lookup[1]:GetText()
@@ -843,7 +848,7 @@ local update_zone_text = function ()
     end
 end
 
-local prepare_zone_text = function ()
+local function prepare_zone_text()
     for _, lookup in ipairs(zone_text_lookup) do
         local _, size, style = lookup[1]:GetFont()
         lookup[1]:SetFont("Interface\\AddOns\\ClassicUA\\assets\\FRIZQT_UA.ttf", size, style)
@@ -856,7 +861,7 @@ end
 local world_map_original_set_map_id = WorldMapFrame.SetMapID
 local world_map_dds = { WorldMapContinentDropDown, WorldMapZoneDropDown }
 
-WorldMapFrame.SetMapID = function (self, mapID)
+WorldMapFrame.SetMapID(self, mapID)
     world_map_original_set_map_id(self, mapID)
 
     for _, v in ipairs(world_map_dds) do
@@ -868,7 +873,7 @@ WorldMapFrame.SetMapID = function (self, mapID)
     end
 end
 
-local world_map_dropdown_button_click = function (self)
+local function world_map_dropdown_button_click(self)
     local dd = DropDownList1
     if dd:IsShown() then
         local texts = {}
@@ -897,7 +902,7 @@ end
 WorldMapContinentDropDownButton:HookScript("OnClick", world_map_dropdown_button_click)
 WorldMapZoneDropDownButton:HookScript("OnClick", world_map_dropdown_button_click)
 
-local world_map_area_label_update = function (self)
+local function world_map_area_label_update(self)
     local text = self.Name:GetText()
     if text then
         local found = get_entry_text(text)
@@ -907,7 +912,7 @@ local world_map_area_label_update = function (self)
     end
 end
 
-local prepare_world_map = function ()
+local function prepare_world_map()
     for provider, _ in pairs(WorldMapFrame.dataProviders) do
         if provider.setAreaLabelCallback and provider.Label and provider.Label.Name then
             local _, size, style = provider.Label.Name:GetFont()
@@ -933,7 +938,7 @@ event_frame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 
 event_frame:SetScript("OnEvent", function (self, event, ...)
     if event == "ADDON_LOADED" then
-        local s = get_stats()
+        local s = CUA_entries:get_stats()
         local v = GetAddOnMetadata("ClassicUA", "Version")
         print("|TInterface\\AddOns\\ClassicUA\\assets\\ua:0|t ClassicUA v" .. v .. " loaded: "
             .. s.quest_a + s.quest_h + s.quest_n .. " quests, "
@@ -954,20 +959,20 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         local faction = UnitFactionGroup("player")
 
         -- print("PLAYER_LOGIN", name, race, class, sex, faction)
-        prepare_talent_tree(class)
-        prepare_quests(faction == "Alliance")
-        prepare_codes(name, race, class, sex == 2) -- 2 for male
-        prepare_zones()
+        CUA_TalentTree:Init(class)
+        CUA_entries:prepare_quests(faction == "Alliance")
+        CUA_entries:prepare_codes(name, race, class, sex == 2) -- 2 for male
+        CUA_entries:prepare_zones()
         prepare_zone_text()
         prepare_world_map()
     elseif event == "ITEM_TEXT_BEGIN" then
         if tooltip_entry_type == "item" then
-            book_item_id = tooltip_entry_id
+            CUA_books.book_item_id = tooltip_entry_id
         end
     elseif event == "ITEM_TEXT_READY" then
-        show_book()
+        CUA_books:show_book()
     elseif event == "ITEM_TEXT_CLOSED" then
-        hide_book()
+        CUA_books:hide_book()
     elseif event == "ZONE_CHANGED"
         or event == "ZONE_CHANGED_INDOORS"
         or event == "ZONE_CHANGED_NEW_AREA" then

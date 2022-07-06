@@ -18,5 +18,14 @@ entries\spell.lua
 entries\text.lua
 entries\zone.lua
 
+frames.lua
+books.lua
+
+utils.lua
+entries.lua
+tooltips.lua
+
+talent_tree_tbc.lua
 talent_tree.lua
+
 main.lua
